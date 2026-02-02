@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel Architecture: Six Steps to Secure DeFi Automation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            color: #1e293b;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+
+        .diagram-wrapper {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+        }
+
+        .flow-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            position: relative;
+        }
+
+        /* Actor Lanes */
+        .actor-lane {
+            display: flex;
+            align-items: stretch;
+            min-height: 140px;
+            position: relative;
+        }
+
+        .actor-label {
+            width: 220px;
+            min-width: 220px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border-right: 3px solid;
+            position: relative;
+        }
+
+        .actor-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .actor-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            line-height: 1.3;
+        }
+
+        .actor-subtitle {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        /* Actor Colors */
+        .actor-automation {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-color: #3b82f6;
+        }
+        .actor-automation .actor-icon {
+            background: #3b82f6;
+            color: white;
+        }
+        .actor-automation .actor-name {
+            color: #1e40af;
+        }
+
+        .actor-sentinel-offchain {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-color: #f59e0b;
+        }
+        .actor-sentinel-offchain .actor-icon {
+            background: #f59e0b;
+            color: white;
+        }
+        .actor-sentinel-offchain .actor-name {
+            color: #92400e;
+        }
+
+        .actor-sentinel-onchain {
+            background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+            border-color: #ea580c;
+        }
+        .actor-sentinel-onchain .actor-icon {
+            background: #ea580c;
+            color: white;
+        }
+        .actor-sentinel-onchain .actor-name {
+            color: #9a3412;
+        }
+
+        .actor-wallet {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-color: #10b981;
+        }
+        .actor-wallet .actor-icon {
+            background: #10b981;
+            color: white;
+        }
+        .actor-wallet .actor-name {
+            color: #065f46;
+        }
+
+        .actor-defi {
+            background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+            border-color: #8b5cf6;
+        }
+        .actor-defi .actor-icon {
+            background: #8b5cf6;
+            color: white;
+        }
+        .actor-defi .actor-name {
+            color: #5b21b6;
+        }
+
+        .actor-monitoring {
+            background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%);
+            border-color: #06b6d4;
+        }
+        .actor-monitoring .actor-icon {
+            background: #06b6d4;
+            color: white;
+        }
+        .actor-monitoring .actor-name {
+            color: #0e7490;
+        }
+
+        /* Step Content Area */
+        .step-content {
+            flex: 1;
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+        }
+
+        /* Step Box */
+        .step-box {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 24px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 2px solid #e2e8f0;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .step-number {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+
+        .step-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #1e293b;
+            margin-bottom: 10px;
+            padding-right: 60px;
+        }
+
+        .step-description {
+            font-size: 0.9rem;
+            color: #475569;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .step-details {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 0.82rem;
+            color: #64748b;
+        }
+
+        .step-details ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .step-details li {
+            padding: 3px 0;
+            padding-left: 18px;
+            position: relative;
+        }
+
+        .step-details li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #94a3b8;
+        }
+
+        .step-note {
+            margin-top: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .note-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fbbf24;
+        }
+
+        .note-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #34d399;
+        }
+
+        .note-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #60a5fa;
+        }
+
+        /* Decision Diamond */
+        .decision-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .decision-diamond {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .decision-diamond::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            transform: translate(-50%, -50%) rotate(45deg);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .decision-diamond span {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2rem;
+            z-index: 1;
+        }
+
+        .decision-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .decision-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+
+        .decision-allowed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .decision-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Arrow Labels */
+        .arrow-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 0;
+            position: relative;
+        }
+
+        .arrow-line {
+            position: absolute;
+            left: 242px;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(180deg, #94a3b8 0%, #cbd5e1 100%);
+        }
+
+        .arrow-label {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: 500;
+            margin-left: 260px;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .arrow-down {
+            position: absolute;
+            left: 240px;
+            bottom: -8px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 12px solid #94a3b8;
+        }
+
+        /* Key Insights Section */
+        .insights-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .insights-title {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 25px;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .insight-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .insight-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .insight-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .insight-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .insight-desc {
+            font-size: 0.82rem;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .insights-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .actor-label {
+                width: 140px;
+                min-width: 140px;
+            }
+
+            .step-box {
+                max-width: 100%;
+            }
+
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Feedback Loop Arrow */
+        .feedback-arrow {
+            position: absolute;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .feedback-arrow-line {
+            width: 2px;
+            height: 60px;
+            background: #06b6d4;
+        }
+
+        .feedback-arrow-text {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            font-size: 0.7rem;
+            color: #0891b2;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sentinel Architecture: Six Steps to Secure DeFi Automation</h1>
+        <p class="subtitle">A separation-of-concerns model where automation proposes, policy constrains, and wallets authorize</p>
+
+        <div class="diagram-wrapper">
+            <div class="flow-container">
+
+                <!-- Step 1: Action Proposal -->
+                <div class="actor-lane">
+                    <div class="actor-label actor-automation">
+                        <div class="actor-icon">🤖</div>
+                        <div class="actor-name">Automation / Bot / AI</div>
+                        <div class="actor-subtitle">Intent Layer</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-box">
+                            <div class="step-number">1</div>
+                            <div class="step-title">Action Proposal</div>
+                            <div class="step-description">
+                                Propose action (e.g., Deposit 5 USDC into Vault X)
+                            </div>
+                            <div class="step-details">
+                                <ul>
+                                    <li>No funds touched</li>
+                                    <li>No authority assumed</li>
+                                    <li>This is <strong>intent</strong>, not execution</li>
+                                </ul>
+                            </div>
+                            <div class="step-note note-info">
+                                <span>ℹ️</span>
+                                <span>Automation can only suggest — never act</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arrow 1 -->
+                <div class="arrow-section">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-label">📤 Proposed Action (unsigned)</div>
+                    <div class="arrow-down"></div>
+                </div>
+
+                <!-- Step 2: Risk Context -->
+                <div class="actor-lane">
+                    <div class="actor-label actor-sentinel-offchain">
+                        <div class="actor-icon">🛡️</div>
+                        <div class="actor-name">Sentinel</div>
+                        <div class="actor-subtitle">Off-chain Intelligence</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-box">
+                            <div class="step-number">2</div>
+                            <div class="step-title">Risk Context Evaluation</div>
+                            <div class="step-description">
+                                Evaluate protocol, vault & action risk. Compute current risk tier.
+                            </div>
+                            <div class="step-details">
+                                <strong>Inputs:</strong>
+                                <ul>
+                                    <li>Protocol health signals</li>
+                                    <li>Vault behavior patterns</li>
+                                    <li>Action size & frequency</li>
+                                </ul>
+                                <strong style="margin-top: 8px; display: block;">Outputs:</strong>
+                                <ul>
+                                    <li>Risk tier (e.g., Tier 1)</li>
+                                    <li>Autonomy band (e.g., Full)</li>
+                                </ul>
+                            </div>
+                            <div class="step-note note-warning">
+                                <span>⚠️</span>
+                                <span><strong>Important:</strong> This component cannot approve execution. It can only <em>constrain</em>.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arrow 2 -->
+                <div class="arrow-section">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-label">📊 Risk Context + Constraints</div>
+                    <div class="arrow-down"></div>
+                </div>
+
+                <!-- Step 3: Policy Check -->
+                <div class="actor-lane">
+                    <div class="actor-label actor-sentinel-onchain">
+                        <div class="actor-icon">🔐</div>
+                        <div class="actor-name">Sentinel</div>
+                        <div class="actor-subtitle">On-chain Policy & Auth</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-box">
+                            <div class="step-number">3</div>
+                            <div class="step-title">Policy & Authorization Check</div>
+                            <div class="step-description">
+                                Verify action against user policy + current autonomy band
+                            </div>
+                            <div class="step-details">
+                                <strong>Checks include:</strong>
+                                <ul>
+                                    <li>Asset allowed?</li>
+                                    <li>Protocol allowlisted?</li>
+                                    <li>Amount ≤ cap?</li>
+                                    <li>Frequency allowed?</li>
+                                    <li>Autonomy band permits entry?</li>
+                                </ul>
+                            </div>
+                            <div class="decision-container">
+                                <div class="decision-diamond">
+                                    <span>❓</span>
+                                </div>
+                                <div class="decision-options">
+                                    <div class="decision-option decision-allowed">
+                                        <span>✅</span> Allowed → Continue
+                                    </div>
+                                    <div class="decision-option decision-rejected">
+                                        <span>❌</span> Rejected → Stop
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="step-note note-warning">
+                                <span>🚧</span>
+                                <span><strong>This is the gate.</strong> The critical checkpoint.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arrow 3 -->
+                <div class="arrow-section">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-label">✅ Policy Passed</div>
+                    <div class="arrow-down"></div>
+                </div>
+
+                <!-- Step 4: Wallet Authorization -->
+                <div class="actor-lane">
+                    <div class="actor-label actor-wallet">
+                        <div class="actor-icon">👛</div>
+                        <div class="actor-name">Smart Wallet</div>
+                        <div class="actor-subtitle">ERC-4337</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-box">
+                            <div class="step-number">4</div>
+                            <div class="step-title">Wallet Authorization (ERC-1271 / AA)</div>
+                            <div class="step-description">
+                                Validate authorization. Sign execution intent.
+                            </div>
+                            <div class="step-details">
+                                <ul>
+                                    <li>Wallet signs <em>only</em> because rules passed</li>
+                                    <li>Sentinel <strong>never</strong> signs for the wallet</li>
+                                    <li>User key or session key provides cryptographic proof</li>
+                                </ul>
+                            </div>
+                            <div class="step-note note-success">
+                                <span>🔑</span>
+                                <span><strong>This is where user sovereignty lives.</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arrow 4 -->
+                <div class="arrow-section">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-label">✍️ Authorized Execution Intent</div>
+                    <div class="arrow-down"></div>
+                </div>
+
+                <!-- Step 5: On-chain Execution -->
+                <div class="actor-lane">
+                    <div class="actor-label actor-defi">
+                        <div class="actor-icon">🏦</div>
+                        <div class="actor-name">DeFi Protocol</div>
+                        <div class="actor-subtitle">ERC-4626 Vault</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-box">
+                            <div class="step-number">5</div>
+                            <div class="step-title">On-chain Execution</div>
+                            <div class="step-description">
+                                Execute deposit / withdrawal. Update vault shares.
+                            </div>
+                            <div class="step-details">
+                                <ul>
+                                    <li>Transaction broadcast to blockchain</li>
+                                    <li>Vault state updated atomically</li>
+                                    <li>User receives share tokens</li>
+                                </ul>
+                            </div>
+                            <div class="step-note note-success">
+                                <span>💰</span>
+                                <span><strong>This is the only place funds move.</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arrow 5 -->
+                <div class="arrow-section">
+                    <div class="arrow-line"></div>
+                    <div class="arrow-label">📝 Execution Receipt</div>
+                    <div class="arrow-down"></div>
+                </div>
+
+                <!-- Step 6: Monitoring -->
+                <div class="actor-lane">
+                    <div class="actor-label actor-monitoring">
+                        <div class="actor-icon">📡</div>
+                        <div class="actor-name">Sentinel</div>
+                        <div class="actor-subtitle">Monitoring</div>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-box">
+                            <div class="step-number">6</div>
+                            <div class="step-title">Monitoring & State Update</div>
+                            <div class="step-description">
+                                Record action. Update risk & autonomy state.
+                            </div>
+                            <div class="step-details">
+                                <ul>
+                                    <li>Log transaction outcome</li>
+                                    <li>Update frequency counters</li>
+                                    <li>Recalculate risk scores</li>
+                                    <li>Adjust autonomy bands if needed</li>
+                                </ul>
+                            </div>
+                            <div class="step-note note-info">
+                                <span>🔄</span>
+                                <span><strong>Feeds future decisions.</strong> Continuous learning loop.</span>
+                            </div>
+                        </div>
+                        <div class="feedback-arrow">
+                            <div class="feedback-arrow-line"></div>
+                            <div class="feedback-arrow-text">Feeds Step 2</div>
+                            <svg width="20" height="20" viewBox="0 0 20 20" style="transform: rotate(180deg);">
+                                <path d="M10 2 L10 18 M3 11 L10 18 L17 11" stroke="#06b6d4" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Key Insights Section -->
+            <div class="insights-section">
+                <h2 class="insights-title">🎯 What This Architecture Proves</h2>
+                <div class="insights-grid">
+                    <div class="insight-card">
+                        <div class="insight-icon">🤖</div>
+                        <div class="insight-title">Automation Never Touches Funds</div>
+                        <div class="insight-desc">
+                            Bots can only propose intent. They have zero execution capability or signing authority.
+                        </div>
+                    </div>
+                    <div class="insight-card">
+                        <div class="insight-icon">🛡️</div>
+                        <div class="insight-title">Sentinel Never Executes</div>
+                        <div class="insight-desc">
+                            Sentinel evaluates and constrains. It cannot initiate transactions or move assets.
+                        </div>
+                    </div>
+                    <div class="insight-card">
+                        <div class="insight-icon">👛</div>
+                        <div class="insight-title">Wallet Never Decides</div>
+                        <div class="insight-desc">
+                            The wallet only authorizes. Decision logic lives entirely in the policy layer.
+                        </div>
+                    </div>
+                    <div class="insight-card">
+                        <div class="insight-icon">📉</div>
+                        <div class="insight-title">Risk Constrains, Never Expands</div>
+                        <div class="insight-desc">
+                            Risk evaluation can only restrict autonomy — it can never grant additional permissions.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <p style="text-align: center; margin-top: 30px; color: #94a3b8; font-size: 0.85rem;">
+            The Sentinel Thesis: Separation of concerns for secure, autonomous DeFi operations
+        </p>
+    </div>
+</body>
+</html>
